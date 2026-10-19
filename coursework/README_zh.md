@@ -5,6 +5,7 @@
 ## 目录说明
 
 - `check_environment.py`：检查依赖、导入路径和 4 个模型配置。
+- `prepare_visdrone.py`：转换并检查 VisDrone 标注，生成本机数据配置。
 - `train_coursework.py`：用统一命令训练 baseline 或改进模型。
 - `../model_configs/`：论文方法对应的模型 YAML 配置。
 - `../ultralytics/`：仓库自带的、已经接入自定义模块的 Ultralytics 源码。
@@ -35,6 +36,30 @@ python coursework/check_environment.py
 这个检查不会下载 VisDrone，也不会开始训练。
 
 如果输出的 `Ultralytics path` 没有指向本仓库里的 `ultralytics/` 目录，请不要继续训练，先检查当前目录和 Python 环境。
+
+## 准备 VisDrone 数据集
+
+从 [数据发布页](https://github.com/ultralytics/yolov5/releases/tag/v1.0) 下载并解压下面三个文件，不需要下载 `test-challenge`：
+
+- `VisDrone2019-DET-train.zip`
+- `VisDrone2019-DET-val.zip`
+- `VisDrone2019-DET-test-dev.zip`
+
+然后用下面的命令把原始标注转换成 YOLO 格式：
+
+```bash
+python coursework/prepare_visdrone.py --dataset-dir ../datasets/VisDrone
+```
+
+脚本会核对图片数量、转换标签并生成 `VisDrone-local.yaml`。数据集和这个本机配置文件都保留在仓库外，不要上传到 GitHub。训练时指定它：
+
+```bash
+python coursework/train_coursework.py \
+  --data ../datasets/VisDrone/VisDrone-local.yaml \
+  --model final \
+  --epochs 5 \
+  --device 0
+```
 
 ## 第三步：训练前先做小规模测试
 
