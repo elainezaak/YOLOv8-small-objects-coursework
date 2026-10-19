@@ -5,8 +5,12 @@
 ## 目录说明
 
 - `check_environment.py`：检查依赖、导入路径和 4 个模型配置。
+- `check_visdrone.py`：检查图片、标签、类别分布，并生成抽查图。
 - `prepare_visdrone.py`：转换并检查 VisDrone 标注，生成本机数据配置。
+- `verify_coursework.py`：一条命令运行环境检查和数据检查。
 - `train_coursework.py`：用统一命令训练 baseline 或改进模型。
+- `VISDRONE_DATA_REPORT.md`：本次数据检查的统计结果。
+- `ONE_EPOCH_RECORD_TEMPLATE.md`：GPU 上完成 1 epoch 后填写的记录模板。
 - `../model_configs/`：论文方法对应的模型 YAML 配置。
 - `../ultralytics/`：仓库自带的、已经接入自定义模块的 Ultralytics 源码。
 
@@ -25,7 +29,9 @@ git switch -c 你的名字-任务名称
 
 ## 第二步：检查环境
 
-请使用 Python 3.10，并安装 `requirements-coursework.txt` 中的依赖。进入仓库根目录后运行：
+固定版本为 Python 3.10、PyTorch 2.2.2、Torchvision 0.17.2 和 Ultralytics 8.1.20。CUDA 构建根据实际 NVIDIA 显卡驱动选择，不要求不同机器安装相同的系统 CUDA Toolkit。
+
+请先安装 `requirements-coursework.txt` 中的依赖。进入仓库根目录后运行：
 
 ```bash
 python coursework/check_environment.py
@@ -36,6 +42,12 @@ python coursework/check_environment.py
 这个检查不会下载 VisDrone，也不会开始训练。
 
 如果输出的 `Ultralytics path` 没有指向本仓库里的 `ultralytics/` 目录，请不要继续训练，先检查当前目录和 Python 环境。
+
+在 GPU 机器上可以增加 `--require-cuda`，确保 PyTorch 确实识别显卡：
+
+```bash
+python coursework/check_environment.py --require-cuda
+```
 
 ## 准备 VisDrone 数据集
 
@@ -53,6 +65,46 @@ python coursework/prepare_visdrone.py --dataset-dir ../datasets/VisDrone
 
 脚本会核对图片数量、转换标签并生成 `VisDrone-local.yaml`。数据集和这个本机配置文件都保留在仓库外，不要上传到 GitHub。训练时指定它：
 
+```text
+仓库父目录/
+├── YOLOv8-for-small-objects/
+│   ├── coursework/
+│   ├── model_configs/
+│   └── ultralytics/
+└── datasets/
+    └── VisDrone/
+        ├── VisDrone-local.yaml
+        ├── VisDrone2019-DET-train/
+        │   ├── images/
+        │   ├── annotations/
+        │   └── labels/
+        ├── VisDrone2019-DET-val/
+        ├── VisDrone2019-DET-test-dev/
+        ├── downloads/
+        └── reports/
+```
+
+转换完成后，一条命令检查环境、全部标签和类别分布：
+
+```bash
+python coursework/verify_coursework.py
+```
+
+成功时最后会显示 `All coursework preflight checks passed.`。本机报告写入 `../datasets/VisDrone/reports/`：
+
+- `dataset_report.md`：数据量和类别分布表。
+- `class_distribution.csv`：可用于报告或进一步分析的 CSV。
+- `class_distribution.png`：类别分布柱状图。
+- `label_samples.jpg`：随机标注抽查图。
+
+GPU 机器上的一键检查命令为：
+
+```bash
+python coursework/verify_coursework.py --require-cuda
+```
+
+训练脚本默认使用这个本机 YAML，也可以显式指定它：
+
 ```bash
 python coursework/train_coursework.py \
   --data ../datasets/VisDrone/VisDrone-local.yaml \
@@ -63,18 +115,22 @@ python coursework/train_coursework.py \
 
 ## 第三步：训练前先做小规模测试
 
-正式训练前，先使用 5 个 epochs 验证数据路径、标签转换、显卡和训练流程：
+第一次拿到可用 GPU 时，先运行 1 epoch，完成环境与数据负责人的交付记录：
 
 ```bash
 python coursework/train_coursework.py \
   --model final \
-  --epochs 5 \
-  --batch 16 \
+  --epochs 1 \
+  --batch 8 \
   --device 0 \
   --pretrained
 ```
 
-其中 `--device 0` 表示使用第 1 张可用 GPU；如果当前设备没有 GPU，可以改为 `--device cpu`，但完整训练会很慢。
+其中 `--device 0` 表示使用第 1 张可用 GPU。如果显存不足，先把 `--batch 8` 改成 `--batch 4`，不要修改输入尺寸和数据划分。
+
+完成后填写 `ONE_EPOCH_RECORD_TEMPLATE.md`，至少记录 GPU、驱动、PyTorch CUDA build、完整命令、batch、耗时和验证指标。
+
+确认 1 epoch 成功后，再使用 5 个 epochs 做训练流程测试；正式实验的 epochs 由小组统一决定。当前设备没有 GPU 时可以使用 `--device cpu` 做代码检查，但不建议在 CPU 上跑完整 VisDrone 训练。
 
 确认测试成功后，再根据实际算力调整 epochs、batch 和 workers。所有对比实验应尽量使用相同的数据划分、输入尺寸、epochs、batch 和随机种子。
 
