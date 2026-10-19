@@ -10,6 +10,7 @@
 - `verify_coursework.py`：一条命令运行环境检查和数据检查。
 - `train_coursework.py`：用统一命令训练 baseline 或改进模型。
 - `VISDRONE_DATA_REPORT.md`：本次数据检查的统计结果。
+- `VERIFIED_ENVIRONMENT.md`：已经通过检查的 Linux/CUDA 参考环境。
 - `ONE_EPOCH_RECORD_TEMPLATE.md`：GPU 上完成 1 epoch 后填写的记录模板。
 - `../model_configs/`：论文方法对应的模型 YAML 配置。
 - `../ultralytics/`：仓库自带的、已经接入自定义模块的 Ultralytics 源码。
@@ -29,9 +30,20 @@ git switch -c 你的名字-任务名称
 
 ## 第二步：检查环境
 
-固定版本为 Python 3.10、PyTorch 2.2.2、Torchvision 0.17.2 和 Ultralytics 8.1.20。CUDA 构建根据实际 NVIDIA 显卡驱动选择，不要求不同机器安装相同的系统 CUDA Toolkit。
+固定版本为 Python 3.10、PyTorch 2.2.2、Torchvision 0.17.2 和 Ultralytics 8.1.20。Linux/NVIDIA 环境统一使用已经验证的 PyTorch `cu121` 构建，不要求安装相同版本的系统 CUDA Toolkit。
 
-请先安装 `requirements-coursework.txt` 中的依赖。进入仓库根目录后运行：
+在 Linux/NVIDIA 主机上创建独立环境并安装依赖：
+
+```bash
+conda create -n yolo_small python=3.10 pip -y
+conda activate yolo_small
+
+python -m pip install --upgrade pip
+python -m pip install -r requirements-cuda121.txt
+python -m pip install -r requirements-coursework.txt
+```
+
+如果机器已经正确安装 PyTorch 2.2.2，可以只安装 `requirements-coursework.txt`。进入仓库根目录后运行：
 
 ```bash
 python coursework/check_environment.py
@@ -67,7 +79,7 @@ python coursework/prepare_visdrone.py --dataset-dir ../datasets/VisDrone
 
 ```text
 仓库父目录/
-├── YOLOv8-for-small-objects/
+├── YOLOv8-small-objects-coursework/
 │   ├── coursework/
 │   ├── model_configs/
 │   └── ultralytics/

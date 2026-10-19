@@ -12,7 +12,7 @@
 - Python：3.10.x
 - PyTorch：2.2.2
 - Torchvision：0.17.2
-- PyTorch CUDA build（`torch.version.cuda`）：
+- PyTorch CUDA build（`torch.version.cuda`）：12.1（参考环境）
 - Ultralytics：8.1.20（本仓库源码）
 
 ## 训练配置

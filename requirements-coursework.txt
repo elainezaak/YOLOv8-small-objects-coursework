@@ -1,5 +1,5 @@
-# Versions used for local model-construction checks.
-# On a GPU machine, use a PyTorch build compatible with its CUDA driver.
+# Common versions used for local checks and the verified Linux GPU environment.
+# On Linux/NVIDIA, install requirements-cuda121.txt before this file.
 numpy==1.26.4
 opencv-python==4.9.0.80
 torch==2.2.2
