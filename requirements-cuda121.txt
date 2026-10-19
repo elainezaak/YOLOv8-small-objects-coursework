@@ -1,5 +1,0 @@
-# Linux/NVIDIA reference build verified for this coursework.
-# Install this file before requirements-coursework.txt.
---index-url https://download.pytorch.org/whl/cu121
-torch==2.2.2
-torchvision==0.17.2

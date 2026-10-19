@@ -1,5 +1,6 @@
-# Common versions used for local checks and the verified Linux GPU environment.
-# On Linux/NVIDIA, install requirements-cuda121.txt before this file.
+# PyTorch 2.2.2 CUDA 12.1 wheels are selected on compatible Linux/NVIDIA hosts.
+# Other platforms fall back to compatible wheels from PyPI.
+--extra-index-url https://download.pytorch.org/whl/cu121
 numpy==1.26.4
 opencv-python==4.9.0.80
 torch==2.2.2

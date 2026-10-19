@@ -10,7 +10,6 @@
 - `verify_coursework.py`：一条命令运行环境检查和数据检查。
 - `train_coursework.py`：用统一命令训练 baseline 或改进模型。
 - `VISDRONE_DATA_REPORT.md`：本次数据检查的统计结果。
-- `VERIFIED_ENVIRONMENT.md`：已经通过检查的 Linux/CUDA 参考环境。
 - `ONE_EPOCH_RECORD_TEMPLATE.md`：GPU 上完成 1 epoch 后填写的记录模板。
 - `../model_configs/`：论文方法对应的模型 YAML 配置。
 - `../ultralytics/`：仓库自带的、已经接入自定义模块的 Ultralytics 源码。
@@ -39,11 +38,10 @@ conda create -n yolo_small python=3.10 pip -y
 conda activate yolo_small
 
 python -m pip install --upgrade pip
-python -m pip install -r requirements-cuda121.txt
 python -m pip install -r requirements-coursework.txt
 ```
 
-如果机器已经正确安装 PyTorch 2.2.2，可以只安装 `requirements-coursework.txt`。进入仓库根目录后运行：
+`requirements-coursework.txt` 已包含 PyTorch、Torchvision 和 CUDA 12.1 软件源配置，不需要再安装第二个 requirements 文件。进入仓库根目录后运行：
 
 ```bash
 python coursework/check_environment.py
