@@ -1,1 +1,14 @@
 *__pycache__
+.DS_Store
+.idea/
+.vscode/
+.venv/
+.cache/
+envs/
+datasets/
+runs/
+*.pt
+*.onnx
+*.engine
+*.log
+

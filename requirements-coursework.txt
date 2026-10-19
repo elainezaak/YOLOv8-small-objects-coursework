@@ -1,0 +1,8 @@
+# Versions used for local model-construction checks on Apple Silicon.
+# The A6000 machine will use a CUDA build of PyTorch instead.
+numpy==1.26.4
+opencv-python==4.9.0.80
+torch==2.2.2
+torchvision==0.17.2
+ultralytics==8.1.20
+
