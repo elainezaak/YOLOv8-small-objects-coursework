@@ -1,5 +1,5 @@
-# Versions used for local model-construction checks on Apple Silicon.
-# The A6000 machine will use a CUDA build of PyTorch instead.
+# Versions used for local model-construction checks.
+# On a GPU machine, use a PyTorch build compatible with its CUDA driver.
 numpy==1.26.4
 opencv-python==4.9.0.80
 torch==2.2.2

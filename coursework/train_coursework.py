@@ -35,7 +35,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--device",
         default="cpu",
-        help="Use 'cpu' locally. Use '0' for the first A6000 GPU.",
+        help="Use 'cpu' without a GPU, or '0' for the first available GPU.",
     )
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
