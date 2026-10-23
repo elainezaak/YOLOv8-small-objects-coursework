@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+# 卷积、C2f、SPPF、Detect、CBAM 等网络组件
 """
 Ultralytics modules.
 

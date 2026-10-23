@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+# 验证集循环、指标统计基础流程
 """
 Check a model's accuracy on a test or val split of a dataset.
 

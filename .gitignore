@@ -12,3 +12,5 @@ runs/
 *.engine
 *.log
 
+\.py310-packages/
+\.py310-packages2/

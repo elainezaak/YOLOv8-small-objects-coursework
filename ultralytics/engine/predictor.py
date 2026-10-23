@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+# 推理主循环、预处理、计时
 """
 Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.
 

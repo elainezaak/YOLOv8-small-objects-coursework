@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
+# 读取 YAML，按配置组装完整模型
 import contextlib
 from copy import deepcopy
 from pathlib import Path

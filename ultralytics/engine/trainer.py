@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+# 训练循环、损失反向传播、优化器、保存权重
 """
 Train a model on a dataset.
 

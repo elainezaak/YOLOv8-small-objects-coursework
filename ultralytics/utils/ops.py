@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
+# 边界框转换、NMS、坐标缩放等
 import contextlib
 import math
 import re

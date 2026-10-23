@@ -1,5 +1,4 @@
-"""One training entry point for the baseline and repository model variants."""
-
+"""统一训练 baseline 和仓库模型变体的入口。"""
 import argparse
 import os
 from pathlib import Path

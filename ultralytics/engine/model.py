@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
+# YOLO 对象的总入口，管理 .train()、.val()、.predict()、.export()
 import inspect
 import sys
 from pathlib import Path
