@@ -1,0 +1,15 @@
+{
+  "model": "baseline",
+  "precision": 0.4358557086546364,
+  "recall": 0.33722492464616016,
+  "mAP50": 0.33478256915715754,
+  "mAP50-95": 0.19575615269445304,
+  "parameters": 3012798,
+  "training_minutes": 171.9,
+  "validation_speed_ms": {
+    "preprocess": 0.8459056380891452,
+    "inference": 1.5561402279095058,
+    "loss": 0.0015967083673407562,
+    "postprocess": 6.952061705345655
+  }
+}

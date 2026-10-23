@@ -1,0 +1,9 @@
+{
+  "model": "p2_nop5",
+  "precision": 0.39314285632945856,
+  "recall": 0.3162757369163332,
+  "mAP50": 0.30371179313358365,
+  "mAP50-95": 0.17395954429331556,
+  "parameters": 1382782,
+  "weights": "/data/ysh/Projects/YOLOv8-coursework/YOLOv8-small-objects-coursework-main/runs/02_ablation_30ep/p2_nop5/seed42_20261022_125434_965820/weights/best.pt"
+}
