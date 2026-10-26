@@ -14,7 +14,8 @@ from tqdm import tqdm
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DATASET_DIR = REPO_ROOT.parent / "datasets" / "VisDrone"
+# 默认使用仓库内部的数据目录。
+DEFAULT_DATASET_DIR = REPO_ROOT / "datasets" / "VisDrone"
 CACHE_ROOT = REPO_ROOT / ".cache"
 os.environ.setdefault("MPLCONFIGDIR", str(CACHE_ROOT / "matplotlib"))
 

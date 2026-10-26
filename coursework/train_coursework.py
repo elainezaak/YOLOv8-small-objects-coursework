@@ -7,7 +7,7 @@ import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA_YAML = (
-    REPO_ROOT.parent / "datasets" / "VisDrone" / "VisDrone-local.yaml"
+    REPO_ROOT / "datasets" / "VisDrone" / "VisDrone-local.yaml"
 )
 CACHE_ROOT = REPO_ROOT / ".cache"
 os.environ.setdefault("MPLCONFIGDIR", str(CACHE_ROOT / "matplotlib"))

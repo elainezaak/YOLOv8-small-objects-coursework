@@ -11,7 +11,8 @@ from tqdm import tqdm
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DATASET_DIR = REPO_ROOT.parent / "datasets" / "VisDrone"
+# 默认使用仓库内部的数据目录，便于把代码和本地数据一起交给实验室服务器。
+DEFAULT_DATASET_DIR = REPO_ROOT / "datasets" / "VisDrone"
 SPLITS = {
     "VisDrone2019-DET-train": 6471,
     "VisDrone2019-DET-val": 548,

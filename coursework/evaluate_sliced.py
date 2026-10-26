@@ -149,30 +149,35 @@ def _match_image(
     targets: list[tuple[int, float, float, float, float]],
     thresholds: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Match one image at every IoU threshold using confidence ordering."""
-    # 先按置信度从高到低排序，符合 PR 曲线和 AP 的计算要求。
-    predictions = sorted(predictions, key=lambda item: float(item["confidence"]), reverse=True)
+    """Match one image using the repository's Ultralytics validator algorithm."""
     tp = np.zeros((len(predictions), len(thresholds)), dtype=bool)
     confidences = np.asarray([float(item["confidence"]) for item in predictions], dtype=np.float64)
     predicted_classes = np.asarray([int(item["class_id"]) for item in predictions], dtype=np.int64)
     target_classes = np.asarray([int(item[0]) for item in targets], dtype=np.int64)
 
-    target_array = np.asarray([item[1:] for item in targets], dtype=np.float64).reshape(-1, 4)
-    # 每个 IoU 阈值独立匹配，且同一个真实框在同一阈值下只能匹配一次。
-    for threshold_index, threshold in enumerate(thresholds):
-        matched_targets: set[int] = set()
-        for prediction_index, prediction in enumerate(predictions):
-            # 预测框只能与相同类别的真实框匹配。
-            same_class = np.flatnonzero(target_classes == int(prediction["class_id"]))
-            same_class = np.asarray([index for index in same_class if index not in matched_targets], dtype=np.int64)
-            if len(same_class) == 0:
-                continue
-            box = tuple(float(prediction[key]) for key in ("x1", "y1", "x2", "y2"))
-            overlaps = _iou(box, target_array[same_class])
-            best_local = int(np.argmax(overlaps))
-            if overlaps[best_local] >= threshold:
-                matched_targets.add(int(same_class[best_local]))
-                tp[prediction_index, threshold_index] = True
+    if len(predictions) and len(targets):
+        import torch
+        from ultralytics.utils.metrics import box_iou
+
+        # 使用 Ultralytics 同一个 box_iou 实现，维度为真实框 x 预测框。
+        target_boxes = torch.tensor([item[1:] for item in targets], dtype=torch.float32)
+        prediction_boxes = torch.tensor(
+            [[float(item[key]) for key in ("x1", "y1", "x2", "y2")] for item in predictions],
+            dtype=torch.float32,
+        )
+        overlaps = box_iou(target_boxes, prediction_boxes).cpu().numpy()
+        # 不同类别的框不能匹配；其余分配规则与 DetectionValidator.match_predictions 一致。
+        overlaps *= target_classes[:, None] == predicted_classes[None, :]
+
+        for threshold_index, threshold in enumerate(thresholds):
+            # 先按 IoU 从高到低，再依次保证一个预测和一个真实框最多匹配一次。
+            matches = np.asarray(np.nonzero(overlaps >= threshold)).T
+            if len(matches):
+                if len(matches) > 1:
+                    matches = matches[overlaps[matches[:, 0], matches[:, 1]].argsort()[::-1]]
+                    matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
+                    matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
+                tp[matches[:, 1].astype(int), threshold_index] = True
     return tp, confidences, predicted_classes, target_classes
 
 
@@ -302,10 +307,18 @@ def main() -> None:
         args.images.expanduser().resolve(),
         thresholds,
     )
+    # 切片推理器会将模型参数量写入 predictions 的同级 config.json。
+    config_path = args.predictions.expanduser().resolve().parent / "config.json"
+    if config_path.is_file():
+        config = json.loads(config_path.read_text(encoding="utf-8"))
+        if "parameters" in config:
+            metrics["parameters"] = int(config["parameters"])
+            metrics["parameters_m"] = float(config.get("parameters_m", metrics["parameters"] / 1e6))
     write_outputs(args.output_dir.expanduser().resolve(), metrics, per_class)
     print(
         f"Evaluated {metrics['images']} images; "
         f"mAP50={metrics['mAP50']:.4f}, mAP50-95={metrics['mAP50-95']:.4f}; "
+        f"parameters={metrics.get('parameters', 'not recorded')}; "
         f"results saved to {args.output_dir.expanduser().resolve()}"
     )
 
