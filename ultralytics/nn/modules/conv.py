@@ -20,6 +20,7 @@ __all__ = (
     "SpatialAttention",
     "CBAM",
     "Concat",
+    "AdaptiveWeightedConcat",
     "RepConv",
 )
 
@@ -331,3 +332,21 @@ class Concat(nn.Module):
     def forward(self, x):
         """Forward pass for the YOLOv8 mask Proto module."""
         return torch.cat(x, self.d)
+
+
+class AdaptiveWeightedConcat(nn.Module):
+    """Scale each input branch with a learnable weight before concatenation."""
+
+    def __init__(self, n_inputs, dimension=1):
+        super().__init__()
+        if n_inputs < 1:
+            raise ValueError("AdaptiveWeightedConcat requires at least one input.")
+        self.n_inputs = n_inputs
+        self.d = dimension
+        self.logits = nn.Parameter(torch.zeros(n_inputs))
+
+    def forward(self, x):
+        if len(x) != self.n_inputs:
+            raise ValueError(f"Expected {self.n_inputs} inputs, received {len(x)}.")
+        weights = (self.logits.softmax(dim=0) * self.n_inputs).to(dtype=x[0].dtype)
+        return torch.cat([feature * weights[i] for i, feature in enumerate(x)], self.d)

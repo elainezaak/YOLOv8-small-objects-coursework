@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import subprocess
 import sys
 import time
 from datetime import datetime
@@ -25,12 +26,14 @@ sys.path.insert(0, str(ROOT))
 import torch  # noqa: E402
 import ultralytics  # noqa: E402
 from ultralytics import YOLO  # noqa: E402
+from coursework.training_monitor import add_live_metrics_plot  # noqa: E402
 
 CONFIGS = {
     'p2': ROOT / 'model_configs/yolov8-p2.yaml',
     'p2-nop5': ROOT / 'model_configs/yolov8-p2_woP5.yaml',
     'fusion': ROOT / 'model_configs/yolov8-p2_woP5_sandwich.yaml',
     'final': ROOT / 'model_configs/yolov8-p2_woP5_sandwich_CBAM.yaml',
+    'final-p2awf': ROOT / 'model_configs/yolov8-p2_woP5_sandwich_CBAM_p2awf.yaml',
 }
 STAGES = {
     'ablation': ('02_ablation_30ep', 30),
@@ -60,6 +63,12 @@ def main():
     ap.add_argument('--seed', type=int, default=42)
     ap.add_argument('--device', default='0')
     ap.add_argument('--workers', type=int, default=4)
+    ap.add_argument('--plot-every', type=int, default=1, help='Refresh results.png every N epochs; use 0 to disable live plotting.')
+    ap.add_argument(
+        '--shutdown-after',
+        action='store_true',
+        help='Request AutoDL instance shutdown after training and run reports are saved.',
+    )
     ap.add_argument('--data', type=Path, default=ROOT.parent / 'datasets/VisDrone/VisDrone-local.yaml')
     args = ap.parse_args()
 
@@ -67,6 +76,8 @@ def main():
     epochs = args.epochs or default_epochs
     if args.batch <= 0 or epochs <= 0 or args.imgsz <= 0:
         ap.error('epochs, batch and imgsz must be positive')
+    if args.plot_every < 0:
+        ap.error('--plot-every must be zero or a positive integer')
     data = args.data.expanduser().resolve()
     if not data.is_file():
         ap.error(f'Dataset YAML missing: {data}')
@@ -82,6 +93,8 @@ def main():
         model = YOLO(str(model_config))
         if args.init == 'pretrained':
             model.load('yolov8n.pt')  # Log the *first* Transferred X/Y for COCO transfer.
+
+    add_live_metrics_plot(model, every=args.plot_every)
 
     model_folder = args.model.replace('-', '_')
     project = ROOT / 'runs' / stage_dir / model_folder
@@ -119,11 +132,30 @@ def main():
         'best_weights': str(run_dir / 'weights' / 'best.pt'),
         'last_weights': str(run_dir / 'weights' / 'last.pt'),
         'results_csv': str(run_dir / 'results.csv'),
+        'shutdown_after': args.shutdown_after,
     }
     (run_dir / 'run_summary.json').write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding='utf-8')
     print(f'\nTraining finished; wall time: {elapsed_s / 60:.2f} min', flush=True)
     print(f'Files: {run_dir}', flush=True)
     print(f'Summary: {run_dir / "run_summary.json"}', flush=True)
+    if args.shutdown_after:
+        shutdown_command = Path('/usr/bin/shutdown')
+        if not shutdown_command.is_file():
+            print(f'WARNING: {shutdown_command} not found; stop the instance manually.', flush=True)
+        else:
+            print('Training outputs are saved. Requesting AutoDL instance shutdown.', flush=True)
+            try:
+                # AutoDL may provide shutdown as a shell script without an executable format header.
+                # Route it through the shell, as AutoDL's own instructions recommend.
+                result = subprocess.run(str(shutdown_command), shell=True, check=False)
+                if result.returncode != 0:
+                    print(
+                        f'WARNING: shutdown returned exit code {result.returncode}; '
+                        'stop the instance manually if it remains running.',
+                        flush=True,
+                    )
+            except OSError as exc:
+                print(f'WARNING: could not request shutdown: {exc}', flush=True)
 
 
 if __name__ == '__main__':

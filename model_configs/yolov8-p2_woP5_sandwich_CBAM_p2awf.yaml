@@ -1,0 +1,51 @@
+# Final model with adaptive branch weighting at the P2 fusion node.
+# The weights initialize to one, so the initial forward pass matches Concat.
+
+# Parameters
+nc: 80
+scales:
+  n: [0.33, 0.25, 1024]
+  s: [0.33, 0.50, 1024]
+  m: [0.67, 0.75, 768]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.25, 512]
+
+# Backbone
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [-1, 3, C2fCBAMv2, [128, True]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [-1, 6, C2fCBAMv2, [256, True]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [-1, 6, C2fCBAMv2, [512, True]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [-1, 3, C2fCBAMv2, [512, True]]
+  - [-1, 1, SPPF, [512, 5]]
+
+# P2-P4 detection head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [4, 1, Conv, [256, 3, 2]]
+  - [[-1, 6, 10], 1, Concat, [1]]
+  - [-1, 3, C2fCBAMv2, [512]]
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [2, 1, Conv, [128, 3, 2]]
+  - [[-1, 4, 14], 1, Concat, [1]]
+  - [-1, 3, C2fCBAMv2, [256]]
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [0, 1, Conv, [64, 3, 2]]
+  - [[-1, 2, 18], 1, AdaptiveWeightedConcat, [1]]
+  - [-1, 3, C2fCBAMv2, [128]]
+
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [[-1, 15], 1, Concat, [1]]
+  - [-1, 3, C2fCBAMv2, [256]]
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 12], 1, Concat, [1]]
+  - [-1, 3, C2fCBAMv2, [512]]
+
+  - [[21, 24, 27], 1, Detect, [nc]]

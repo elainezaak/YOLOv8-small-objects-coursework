@@ -18,6 +18,7 @@ for cache_path in (os.environ["MPLCONFIGDIR"], os.environ["XDG_CACHE_HOME"], os.
 sys.path.insert(0, str(REPO_ROOT))
 
 from ultralytics import YOLO  # noqa: E402
+from coursework.training_monitor import add_live_metrics_plot  # noqa: E402
 
 MODEL_CONFIGS = {
     "baseline": "yolov8n.pt",
@@ -25,6 +26,7 @@ MODEL_CONFIGS = {
     "p2-nop5": REPO_ROOT / "model_configs" / "yolov8-p2_woP5.yaml",
     "fusion": REPO_ROOT / "model_configs" / "yolov8-p2_woP5_sandwich.yaml",
     "final": REPO_ROOT / "model_configs" / "yolov8-p2_woP5_sandwich_CBAM.yaml",
+    "final-p2awf": REPO_ROOT / "model_configs" / "yolov8-p2_woP5_sandwich_CBAM_p2awf.yaml",
 }
 
 
@@ -40,6 +42,12 @@ def parse_args() -> argparse.Namespace:
         help="Use 'cpu' without a GPU, or '0' for the first available GPU.",
     )
     parser.add_argument("--workers", type=int, default=8)
+    parser.add_argument(
+        "--plot-every",
+        type=int,
+        default=1,
+        help="Refresh results.png every N epochs; use 0 to disable live plotting.",
+    )
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
         "--data",
@@ -56,6 +64,8 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    if args.plot_every < 0:
+        raise ValueError("--plot-every must be zero or a positive integer")
     if args.data == str(DEFAULT_DATA_YAML) and not DEFAULT_DATA_YAML.is_file():
         raise FileNotFoundError(
             f"Dataset YAML not found: {DEFAULT_DATA_YAML}\n"
@@ -65,6 +75,8 @@ def main() -> None:
 
     if args.pretrained and args.model != "baseline":
         model.load("yolov8n.pt")
+
+    add_live_metrics_plot(model, every=args.plot_every)
 
     model.train(
         data=args.data,

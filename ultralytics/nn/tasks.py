@@ -46,6 +46,7 @@ from ultralytics.nn.modules import (
     RepNCSPELAN4,
     ADown,
     SPPELAN,
+    AdaptiveWeightedConcat,
     CBFuse,
     CBLinear,
     Silence,
@@ -902,6 +903,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             c2 = args[1] if args[3] else args[1] * 4
         elif m is nn.BatchNorm2d:
             args = [ch[f]]
+        elif m is AdaptiveWeightedConcat:
+            args = [len(f), *args]
+            c2 = sum(ch[x] for x in f)
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
         elif m in (Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn):
